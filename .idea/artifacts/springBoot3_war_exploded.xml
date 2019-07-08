@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="springBoot3:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/springBoot3</output-path>
+    <root id="archive" name="springBoot3_war exploded.jar">
+      <element id="javaee-facet-resources" facet="springBoot-token/web/Web" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="springBoot-token" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>
