@@ -11,26 +11,9 @@ public class Application {
         SpringApplication.run(Application.class, args);
     }
 
-   /* @Bean
+    /*@Bean
     public JdbcTemplate jdbcTemplate(DataSource dataSource)
     {
         return new JdbcTemplate(dataSource);
     }*/
-
-    /*@Bean
-    public LocaleResolver localeResolver() {
-        SessionLocaleResolver localResolver=new SessionLocaleResolver();
-        localResolver.setDefaultLocale(new Locale("fa","IR"));
-        return localResolver;
-    }
-    */
-
-    /*@Bean
-    public LocalValidatorFactoryBean validator() {
-        LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
-        bean.setValidationMessageSource(messageSource());
-        return bean;
-    }*/
-
-
 }
