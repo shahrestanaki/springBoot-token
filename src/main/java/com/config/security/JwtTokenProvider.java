@@ -1,9 +1,11 @@
 package com.config.security;
 
+import com.config.Messages;
 import com.config.exception.AppException;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,12 +20,19 @@ import java.util.List;
 
 @Component
 public class JwtTokenProvider {
-    @Value("${security.jwt.token.secret-key:secret}")
-    private String secretKey = "secret";
-    @Value("${security.jwt.token.expire-length:3600000}")
-    private long validityInMilliseconds = 3600000; // 1h
+    @Value("${security.jwt.token.secret-key}")
+    private String secretKey;
+    @Value("${security.jwt.token.expire-length}")
+    private long validityInMilliseconds; // 1h
+    @Value("${keycloak.auth-server-url}")
+    private String authUrl;
+
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    Messages msg;
+
 
     @PostConstruct
     protected void init() {
@@ -54,8 +63,15 @@ public class JwtTokenProvider {
 
     public String resolveToken(HttpServletRequest req) {
         String bearerToken = req.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7, bearerToken.length());
+        boolean authTest = req.getRequestURI().equals(authUrl);
+        if (authTest) {
+            return null;
+        } else if (bearerToken == null) {
+            return "Empty Authorization";
+        } else if (!bearerToken.startsWith("Bearer ")) {
+            return "Empty Bearer";
+        } else if (bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
         }
         return null;
     }
@@ -68,7 +84,13 @@ public class JwtTokenProvider {
             }
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            throw new AppException("Expired or invalid JWT token");
+            if (token.equals("Empty Authorization")) {
+                throw new AppException(msg.message("error.JwtTokenProvider.resolveToken.not.Authorization"), HttpStatus.UNAUTHORIZED);
+            } else if (token.equals("Empty Bearer")) {
+                throw new AppException(msg.message("error.JwtTokenProvider.resolveToken.not.Bearer"), HttpStatus.UNAUTHORIZED);
+            } else {
+                throw new AppException(msg.message("error.Expired.or.invalid.JWT.token"), HttpStatus.UNAUTHORIZED);
+            }
         }
     }
 }

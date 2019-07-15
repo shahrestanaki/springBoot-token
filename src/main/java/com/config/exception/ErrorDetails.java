@@ -1,5 +1,10 @@
 package com.config.exception;
 
+import org.codehaus.jackson.map.ObjectMapper;
+
+import java.io.IOException;
+import java.util.Date;
+
 public class ErrorDetails {
     private String timestamp;
     private String message;
@@ -27,6 +32,19 @@ public class ErrorDetails {
         this.type = type;
     }
 
+    public ErrorDetails(String message, String details, int type) {
+        Date date = new Date();
+        this.timestamp = date.toString();
+        this.message = message;
+        this.details = details;
+        this.type = type;
+    }
+
+    public byte[] restResponseBytes(ErrorDetails eErrorResponse) throws IOException {
+        String serialized = new ObjectMapper().writeValueAsString(eErrorResponse);
+        return serialized.getBytes();
+    }
+
     public String getTimestamp() {
         return timestamp;
     }
@@ -42,5 +60,6 @@ public class ErrorDetails {
     public int getType() {
         return type;
     }
+
 
 }

@@ -17,5 +17,9 @@ public class Messages {
         return message;
     }
 
+    public String message(String message) {
+        message = messageSource.getMessage(message, null, Locale.ENGLISH);
+        return message;
+    }
 
 }

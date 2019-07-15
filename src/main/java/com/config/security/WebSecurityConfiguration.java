@@ -2,11 +2,13 @@ package com.config.security;
 
 import com.service.entity.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -25,12 +27,26 @@ import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+    @Value("${keycloak.auth-server-url}")
+    private String authUrl;
 
-    @Bean
+    /*@Bean
     public JwtTokenProvider jwtTokenProvider() {
         return new JwtTokenProvider();
     }
+*/
+    public WebSecurityConfiguration () {
+        // Disable the default security configuration
+        super(false);
+    }
+
+
+
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     @Bean
     @Override
@@ -41,19 +57,25 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         //@formatter:off
-        http
-                .httpBasic().disable()
-                .csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .antMatchers("/auth/signin").permitAll()
+        http.csrf().disable();
+
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        /*and().anonymous().disable().
+        exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());*/
+
+        http.authorizeRequests()
+                .antMatchers(authUrl).permitAll()
                 /*.antMatchers(HttpMethod.GET, "/vehicles/**").permitAll()
                 .antMatchers(HttpMethod.DELETE, "/vehicles/**").hasRole("ADMIN")
                 .antMatchers(HttpMethod.GET, "/v1/vehicles/**").permitAll()*/
-                .anyRequest().authenticated()
-                .and()
-                .apply(new JwtConfigurer(jwtTokenProvider()));
+                .anyRequest().authenticated();
+
+                // If a user try to access a resource without having enough permissions
+
+        /////http.addFilterBefore(new JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        //http.addFilterBefore(new JwtTokenAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class);
+
+        http.apply(new JwtConfigurer(jwtTokenProvider));
         //@formatter:on
     }
 
@@ -141,4 +163,21 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
             throws Exception {
         auth.inMemoryAuthentication().withUser("user").password("{noop}password").roles("USER");
     }
+
+    /*@Override
+    public void configure(WebSecurity web) throws Exception {
+        // Allow swagger to be accessed without authentication
+        web.ignoring().antMatchers("/v2/api-docs")//
+                .antMatchers("/swagger-resources/**")//
+                .antMatchers("/swagger-ui.html")//
+                .antMatchers("/configuration/**")//
+                .antMatchers("/webjars/**")//
+                .antMatchers("/public")
+
+                // Un-secure H2 Database (for testing purposes, H2 console shouldn't be unprotected in production)
+                .and()
+                .ignoring()
+                .antMatchers("/h2-console/**-**");;
+    }*/
+
 }
