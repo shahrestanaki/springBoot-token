@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/token")
 public class AuthenticationController {
     @Autowired
     AuthenticationManager authenticationManager;
@@ -29,8 +29,8 @@ public class AuthenticationController {
     @Autowired
     UserDetailsServiceImpl userServiceImp;
 
-    @PostMapping("/signin")
-    public ResponseEntity signin(@RequestBody AuthenticationRequest data) {
+    @PostMapping("/generate-token")
+    public ResponseEntity register(@RequestBody AuthenticationRequest data) {
         try {
             String username = data.getUsername();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));
