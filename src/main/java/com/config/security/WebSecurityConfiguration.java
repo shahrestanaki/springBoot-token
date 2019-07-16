@@ -32,18 +32,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("${keycloak.auth-server-url}")
     private String authUrl;
 
-    /*@Bean
-    public JwtTokenProvider jwtTokenProvider() {
-        return new JwtTokenProvider();
-    }
-*/
-    public WebSecurityConfiguration () {
-        // Disable the default security configuration
+    /*public WebSecurityConfiguration() {
         super(false);
-    }
-
-
-
+    }*/
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -54,29 +45,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        //@formatter:off
-        http.csrf().disable();
-
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        /*and().anonymous().disable().
-        exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());*/
-
-        http.authorizeRequests()
-                .antMatchers(authUrl).permitAll()
-                /*.antMatchers(HttpMethod.GET, "/vehicles/**").permitAll()
-                .antMatchers(HttpMethod.DELETE, "/vehicles/**").hasRole("ADMIN")
-                .antMatchers(HttpMethod.GET, "/v1/vehicles/**").permitAll()*/
-                .anyRequest().authenticated();
-
-                // If a user try to access a resource without having enough permissions
-
-        /////http.addFilterBefore(new JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        //http.addFilterBefore(new JwtTokenAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class);
-
-        http.apply(new JwtConfigurer(jwtTokenProvider));
-        //@formatter:on
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
@@ -85,10 +56,35 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return new UserDetailsServiceImpl();
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    @Autowired
+    public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService())
-                .passwordEncoder(getPasswordEncoder());
+                .passwordEncoder(passwordEncoder());
+    }
+
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable();
+
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        /*and().anonymous().disable().
+        exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());*/
+
+        http.authorizeRequests()
+
+                .antMatchers(authUrl).permitAll()
+                /*.antMatchers(HttpMethod.GET, "/vehicles/**").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/vehicles/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.GET, "/v1/vehicles/**").permitAll()*/
+                .anyRequest().authenticated();
+
+        // If a user try to access a resource without having enough permissions
+
+        /////http.addFilterBefore(new JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        //http.addFilterBefore(new JwtTokenAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class);
+
+        http.apply(new JwtConfigurer(jwtTokenProvider));
     }
 
     /*@Override
@@ -120,7 +116,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 */
 
-    private PasswordEncoder getPasswordEncoder() {
+    /*private PasswordEncoder getPasswordEncoder() {
         return new PasswordEncoder() {
             BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -134,7 +130,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 return encoder.matches(charSequence, dbPassword);
             }
         };
-    }
+    }*/
 
     private class AuthentificationLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         @Override
@@ -147,6 +143,12 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         }
     }
 
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth)
+            throws Exception {
+        auth.inMemoryAuthentication().withUser("user").password("{noop}password").roles("USER");
+    }
+
     private class AuthentificationLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
         @Override
         public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -157,11 +159,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         }
     }
 
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth)
-            throws Exception {
-        auth.inMemoryAuthentication().withUser("user").password("{noop}password").roles("USER");
-    }
+
 
     /*@Override
     public void configure(WebSecurity web) throws Exception {

@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Component
 @RestController
 @EnableAutoConfiguration
-/*@RequestMapping("/me")*/
+@RequestMapping("/users")
 public class UserController {
 
     @Autowired
@@ -65,7 +65,7 @@ public class UserController {
         return dozer;
     }
 
-    public ResponseEntity currentUser(@AuthenticationPrincipal UserDetails userDetails) {
+    /*public ResponseEntity currentUser(@AuthenticationPrincipal UserDetails userDetails) {
         Map<Object, Object> model = new HashMap<>();
         model.put("username", userDetails.getUsername());
         model.put("roles", userDetails.getAuthorities()
@@ -74,5 +74,17 @@ public class UserController {
                 .collect(Collectors.toList())
         );
         return ResponseEntity.ok(model);
+    }*/
+
+    @RequestMapping(value = "/admin", method = RequestMethod.GET)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public String currentUser2() {
+        return "{\"id\":\"1\"}";
+    }
+
+    @RequestMapping(value = "/me", method = RequestMethod.GET)
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public String myuser() {
+        return "{\"id\":\"2\"}";
     }
 }
