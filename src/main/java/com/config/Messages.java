@@ -21,5 +21,4 @@ public class Messages {
         message = messageSource.getMessage(message, null, Locale.ENGLISH);
         return message;
     }
-
 }

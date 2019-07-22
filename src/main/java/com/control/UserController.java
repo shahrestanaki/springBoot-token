@@ -4,6 +4,9 @@ package com.control;
 import com.dozer.entity.UsersDozer;
 import com.model.entity.User;
 import com.service.entity.UserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import org.dozer.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -20,6 +23,10 @@ import java.security.Principal;
 @RestController
 @EnableAutoConfiguration
 @RequestMapping("/users")
+@Api(tags = {"UserController"})
+@SwaggerDefinition(tags = {
+        @Tag(name = "UserController", description = "set users")
+})
 public class UserController {
     @Autowired
     private UserService userService;
